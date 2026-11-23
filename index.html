@@ -35,6 +35,13 @@
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
       </button>
+      <button class="btn-help" id="btn-help" aria-label="Ayuda y acerca de" title="Ayuda (H)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -178,6 +185,52 @@
       <p class="footer-note">Supera los 10 tests de la suite antes de hacer entrega de tu repositorio en GitHub Pages.</p>
     </div>
   </footer>
+
+  <!-- Help Modal -->
+  <div class="help-modal" id="help-modal" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
+    <div class="help-modal-content">
+      <div class="help-modal-header">
+        <h2 id="help-modal-title">❓ Ayuda y Acerca de</h2>
+        <button class="help-modal-close" id="help-modal-close" aria-label="Cerrar">×</button>
+      </div>
+      <div class="help-modal-body">
+        <h3>📋 Módulos del Proyecto</h3>
+        <ul>
+          <li><strong>Módulo A:</strong> Simulador BairesDev - Probabilidad, combinatoria, divisibilidad O(1), logística</li>
+          <li><strong>Módulo B:</strong> Motor Cuadrático & Gráfico - Resuelve ax²+bx+c=0 con precisión numérica (Citardauq)</li>
+          <li><strong>Módulo C:</strong> Detector de Secuencias - Aritméticas, geométricas, cuadráticas (2º orden)</li>
+          <li><strong>Módulo D:</strong> Suite de Pruebas - 11 tests unitarios con casos borde (cascaritas numéricas)</li>
+        </ul>
+
+        <h3>⌨️ Atajos de Teclado</h3>
+        <div class="shortcut"><kbd>1</kbd>–<kbd>4</kbd> Cambiar módulo</div>
+        <div class="shortcut"><kbd>T</kbd> Alternar tema claro/oscuro</div>
+        <div class="shortcut"><kbd>H</kbd> Abrir esta ayuda</div>
+        <div class="shortcut"><kbd>?</kbd> Mostrar atajos rápidos</div>
+        <div class="shortcut"><kbd>Enter</kbd> Ejecutar botón enfocado</div>
+        <div class="shortcut"><kbd>Esc</kbd> Limpiar / Recalcular</div>
+
+        <h3>🔬 Cascaritas Numéricas (Precision IEEE-754)</h3>
+        <ul>
+          <li><strong>Cancelación Catastrófica:</strong> Fórmula de Citardauq cuando b² ≫ 4ac</li>
+          <li><strong>Caso Degenerado (a=0):</strong> Detección de ecuación lineal sin división por cero</li>
+          <li><strong>Comparación Flotante:</strong> Uso de <code>Number.EPSILON</code> para comparaciones robustas</li>
+        </ul>
+
+        <h3>💾 Persistencia</h3>
+        <ul>
+          <li>Tema preferido guardado en <code>localStorage</code></li>
+          <li>Respeta preferencia del sistema (<code>prefers-color-scheme</code>)</li>
+          <li>Exportación de resultados de tests a JSON/CSV</li>
+        </ul>
+      </div>
+      <div class="help-modal-footer">
+        <p>Proyecto Integrador ADSO — Johan Romero</p>
+        <p><a href="https://github.com/Johan7074/PaginaMate" target="_blank" rel="noopener">Repositorio en GitHub</a></p>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

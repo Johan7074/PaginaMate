@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initModuloD();
   initKeyboardShortcuts();
   initThemeToggle();
+  initHelpModal();
 });
 
 /* -------------------------------------------------------------
@@ -510,6 +511,50 @@ function initThemeToggle() {
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
     if (!localStorage.getItem("theme")) {
       document.documentElement.setAttribute("data-theme", e.matches ? "dark" : "light");
+    }
+  });
+}
+
+/* -------------------------------------------------------------
+   MODAL DE AYUDA / ACERCA DE
+------------------------------------------------------------- */
+function initHelpModal() {
+  const btnHelp = document.getElementById("btn-help");
+  const modal = document.getElementById("help-modal");
+  const closeBtn = document.getElementById("help-modal-close");
+
+  if (!btnHelp || !modal || !closeBtn) return;
+
+  function openModal() {
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden";
+    closeBtn.focus();
+  }
+
+  function closeModal() {
+    modal.classList.remove("active");
+    document.body.style.overflow = "";
+  }
+
+  btnHelp.addEventListener("click", openModal);
+  closeBtn.addEventListener("click", closeModal);
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal.classList.contains("active")) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key.toLowerCase() === "h" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      e.preventDefault();
+      if (!modal.classList.contains("active")) {
+        openModal();
+      }
     }
   });
 }
