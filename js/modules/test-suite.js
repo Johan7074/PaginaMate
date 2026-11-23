@@ -175,6 +175,22 @@ export const tests = [
         detalle: `Calculo JS crudo: ${calculo}. Comparacion estricta === da: ${comparacionNaive}. Comparacion segura con Epsilon da: ${comparacionRobusta}.`
       };
     }
+  },
+  {
+    id: 11,
+    nombre: "Extra: Discriminante casi cero (x^2 - 2x + 1 = 0)",
+    categoria: "Algebra",
+    esCascarita: false,
+    ejecutar: () => {
+      const res = resolverCuadratica(1, -2, 1);
+      const ok = res.tipo === "RAIZ_DOBLE" && casiIguales(res.raices[0], 1);
+      return {
+        pass: ok,
+        detalle: ok
+          ? `Superado: Raíz doble detectada correctamente x = 1`
+          : `Fallo: Tipo ${res.tipo}, raíz ${res.raices[0]}`
+      };
+    }
   }
 ];
 
