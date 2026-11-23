@@ -230,6 +230,45 @@ export function ejecutarSuiteCompleta() {
     pasados,
     fallados,
     todosAprobados: fallados === 0,
-    resultados
+    resultados,
+    timestamp: new Date().toISOString(),
+    version: "1.0.0"
   };
+}
+
+/**
+ * Exporta resultados a JSON
+ */
+export function exportarResultadosJSON(suite) {
+  const data = JSON.stringify(suite, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `test-results-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Exporta resultados a CSV
+ */
+export function exportarResultadosCSV(suite) {
+  const headers = ["ID", "Prueba", "Categoría", "Es Cascarita", "Estado", "Detalle"];
+  const rows = suite.resultados.map(r => [
+    r.id,
+    `"${r.nombre.replace(/"/g, '""')}"`,
+    `"${r.categoria}"`,
+    r.esCascarita ? "Sí" : "No",
+    r.pass ? "PASS" : "FAIL",
+    `"${r.detalle.replace(/"/g, '""')}"`
+  ]);
+  const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `test-results-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }

@@ -5,7 +5,7 @@
 import { calcularProbabilidadDados, calcularPartidosTorneo, contarMultiplosMenores, calcularViajesMinimos } from "./modules/bairesdev.js";
 import { resolverCuadratica, evaluarPolinomio } from "./modules/cuadratica.js";
 import { analizarSecuencia } from "./modules/secuencias.js";
-import { ejecutarSuiteCompleta } from "./modules/test-suite.js";
+import { ejecutarSuiteCompleta, exportarResultadosJSON, exportarResultadosCSV } from "./modules/test-suite.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   initTabs();
@@ -421,9 +421,15 @@ function initModuloD() {
   const btnRun = document.getElementById("btn-run-all-tests");
   const tableBody = document.getElementById("test-results-body");
   const summaryBadges = document.getElementById("test-summary-badges");
+  const exportButtons = document.getElementById("test-export-buttons");
+  const btnExportJson = document.getElementById("btn-export-json");
+  const btnExportCsv = document.getElementById("btn-export-csv");
+
+  let lastSuite = null;
 
   btnRun?.addEventListener("click", () => {
     const suite = ejecutarSuiteCompleta();
+    lastSuite = suite;
 
     tableBody.innerHTML = "";
     suite.resultados.forEach(r => {
@@ -451,6 +457,21 @@ function initModuloD() {
       summaryBadges.innerHTML = `<span class="badge-status pass">✔ 10/10 PRUEBAS SUPERADAS (${suite.pasados} PASS)</span>`;
     } else {
       summaryBadges.innerHTML = `<span class="badge-status fail">✖ ${suite.fallados} PRUEBA(S) FALLADA(S) • ${suite.pasados}/10 PASS</span>`;
+    }
+
+    // Mostrar botones de exportación
+    exportButtons?.style.setProperty("display", "flex", "important");
+  });
+
+  btnExportJson?.addEventListener("click", () => {
+    if (lastSuite) {
+      exportarResultadosJSON(lastSuite);
+    }
+  });
+
+  btnExportCsv?.addEventListener("click", () => {
+    if (lastSuite) {
+      exportarResultadosCSV(lastSuite);
     }
   });
 }
