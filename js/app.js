@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initModuloB();
   initModuloC();
   initModuloD();
+  initKeyboardShortcuts();
 });
 
 /* -------------------------------------------------------------
@@ -286,6 +287,94 @@ function dibujarParabola(canvas, a, b, c, res) {
       ctx.fill();
     });
   }
+}
+
+/* -------------------------------------------------------------
+   ATAJOS DE TECLADO (ACCESIBILIDAD)
+------------------------------------------------------------- */
+function initKeyboardShortcuts() {
+  const tabs = document.querySelectorAll(".nav-tab");
+  const tabPanes = document.querySelectorAll(".tab-pane");
+
+  // Mapa de teclas a índices de pestañas (1-4)
+  const tabKeyMap = {
+    "1": 0, // Modulo A
+    "2": 1, // Modulo B
+    "3": 2, // Modulo C
+    "4": 3, // Modulo D
+  };
+
+  document.addEventListener("keydown", (e) => {
+    // Ignorar si el usuario está escribiendo en un input
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+      return;
+    }
+
+    // Atajos 1-4 para cambiar de pestaña
+    if (tabKeyMap[e.key] !== undefined) {
+      const idx = tabKeyMap[e.key];
+      if (tabs[idx] && !tabs[idx].classList.contains("active")) {
+        tabs[idx].click();
+      }
+      return;
+    }
+
+    // Enter/Espacio en botones enfocados
+    if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("btn")) {
+      e.target.click();
+    }
+
+    // Escape para limpiar resultados (en módulos con resultados)
+    if (e.key === "Escape") {
+      const activePane = document.querySelector(".tab-pane.active");
+      if (activePane) {
+        const resultBoxes = activePane.querySelectorAll(".result-box, .solver-output");
+        resultBoxes.forEach(box => {
+          if (box.id.startsWith("res-") || box.id === "cuadratica-resultado") {
+            box.innerHTML = box.id === "cuadratica-resultado"
+              ? box.innerHTML // No limpiar el solver output, solo recalcular
+              : "Esperando cálculo...";
+          }
+        });
+        // Recalcular cuadrática si está en módulo B
+        if (activePane.id === "tab-modulo-b") {
+          document.getElementById("btn-resolver-cuadratica")?.click();
+        }
+      }
+    }
+  });
+
+  // Mostrar ayuda de atajos con tecla '?'
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "?" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      e.preventDefault();
+      mostrarAyudaAtajos();
+    }
+  });
+}
+
+function mostrarAyudaAtajos() {
+  const ayuda = `
+    <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+         background:var(--bg-card);border:1px solid var(--border-color);
+         border-radius:12px;padding:2rem;max-width:400px;z-index:1000;
+         box-shadow:0 20px 25px -5px rgba(0,0,0,0.3);">
+      <h3 style="margin-bottom:1rem;color:var(--accent-cyan);">⌨️ Atajos de Teclado</h3>
+      <div style="font-family:var(--font-mono);font-size:0.85rem;line-height:2;">
+        <div><kbd style="background:var(--bg-input);padding:0.15rem 0.4rem;border-radius:4px;border:1px solid var(--border-color);">1</kbd> – <kbd style="background:var(--bg-input);padding:0.15rem 0.4rem;border-radius:4px;border:1px solid var(--border-color);">4</kbd> Cambiar módulo</div>
+        <div><kbd style="background:var(--bg-input);padding:0.15rem 0.4rem;border-radius:4px;border:1px solid var(--border-color);">Enter</kbd> Ejecutar botón enfocado</div>
+        <div><kbd style="background:var(--bg-input);padding:0.15rem 0.4rem;border-radius:4px;border:1px solid var(--border-color);">Esc</kbd> Limpiar / Recalcular</div>
+        <div><kbd style="background:var(--bg-input);padding:0.15rem 0.4rem;border-radius:4px;border:1px solid var(--border-color);">?</kbd> Mostrar esta ayuda</div>
+      </div>
+      <button onclick="this.parentElement.remove()" class="btn btn-primary" style="margin-top:1.5rem;width:100%;">Cerrar</button>
+    </div>
+  `;
+  document.body.insertAdjacentHTML("beforeend", ayuda);
+  // Auto-cerrar tras 10s
+  setTimeout(() => {
+    const el = document.querySelector('[style*="position:fixed"]');
+    if (el) el.remove();
+  }, 10000);
 }
 
 /* -------------------------------------------------------------
