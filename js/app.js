@@ -5,7 +5,7 @@
 import { calcularProbabilidadDados, calcularPartidosTorneo, contarMultiplosMenores, calcularViajesMinimos } from "./modules/bairesdev.js";
 import { resolverCuadratica, evaluarPolinomio } from "./modules/cuadratica.js";
 import { analizarSecuencia } from "./modules/secuencias.js";
-import { ejecutarSuiteCompleta } from "./modules/test-suite.js";
+import { ejecutarSuiteCompleta, exportarResultadosJSON, exportarResultadosCSV } from "./modules/test-suite.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   initTabs();
@@ -13,6 +13,9 @@ document.addEventListener("DOMContentLoaded", () => {
   initModuloB();
   initModuloC();
   initModuloD();
+  initKeyboardShortcuts();
+  initThemeToggle();
+  initHelpModal();
 });
 
 /* -------------------------------------------------------------
@@ -289,6 +292,94 @@ function dibujarParabola(canvas, a, b, c, res) {
 }
 
 /* -------------------------------------------------------------
+   ATAJOS DE TECLADO (ACCESIBILIDAD)
+------------------------------------------------------------- */
+function initKeyboardShortcuts() {
+  const tabs = document.querySelectorAll(".nav-tab");
+  const tabPanes = document.querySelectorAll(".tab-pane");
+
+  // Mapa de teclas a índices de pestañas (1-4)
+  const tabKeyMap = {
+    "1": 0, // Modulo A
+    "2": 1, // Modulo B
+    "3": 2, // Modulo C
+    "4": 3, // Modulo D
+  };
+
+  document.addEventListener("keydown", (e) => {
+    // Ignorar si el usuario está escribiendo en un input
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+      return;
+    }
+
+    // Atajos 1-4 para cambiar de pestaña
+    if (tabKeyMap[e.key] !== undefined) {
+      const idx = tabKeyMap[e.key];
+      if (tabs[idx] && !tabs[idx].classList.contains("active")) {
+        tabs[idx].click();
+      }
+      return;
+    }
+
+    // Enter/Espacio en botones enfocados
+    if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("btn")) {
+      e.target.click();
+    }
+
+    // Escape para limpiar resultados (en módulos con resultados)
+    if (e.key === "Escape") {
+      const activePane = document.querySelector(".tab-pane.active");
+      if (activePane) {
+        const resultBoxes = activePane.querySelectorAll(".result-box, .solver-output");
+        resultBoxes.forEach(box => {
+          if (box.id.startsWith("res-") || box.id === "cuadratica-resultado") {
+            box.innerHTML = box.id === "cuadratica-resultado"
+              ? box.innerHTML // No limpiar el solver output, solo recalcular
+              : "Esperando cálculo...";
+          }
+        });
+        // Recalcular cuadrática si está en módulo B
+        if (activePane.id === "tab-modulo-b") {
+          document.getElementById("btn-resolver-cuadratica")?.click();
+        }
+      }
+    }
+  });
+
+  // Mostrar ayuda de atajos con tecla '?'
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "?" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      e.preventDefault();
+      mostrarAyudaAtajos();
+    }
+  });
+}
+
+function mostrarAyudaAtajos() {
+  const ayuda = `
+    <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+         background:var(--bg-card);border:1px solid var(--border-color);
+         border-radius:12px;padding:2rem;max-width:400px;z-index:1000;
+         box-shadow:0 20px 25px -5px rgba(0,0,0,0.3);">
+      <h3 style="margin-bottom:1rem;color:var(--accent-cyan);">⌨️ Atajos de Teclado</h3>
+      <div style="font-family:var(--font-mono);font-size:0.85rem;line-height:2;">
+        <div><kbd style="background:var(--bg-input);padding:0.15rem 0.4rem;border-radius:4px;border:1px solid var(--border-color);">1</kbd> – <kbd style="background:var(--bg-input);padding:0.15rem 0.4rem;border-radius:4px;border:1px solid var(--border-color);">4</kbd> Cambiar módulo</div>
+        <div><kbd style="background:var(--bg-input);padding:0.15rem 0.4rem;border-radius:4px;border:1px solid var(--border-color);">Enter</kbd> Ejecutar botón enfocado</div>
+        <div><kbd style="background:var(--bg-input);padding:0.15rem 0.4rem;border-radius:4px;border:1px solid var(--border-color);">Esc</kbd> Limpiar / Recalcular</div>
+        <div><kbd style="background:var(--bg-input);padding:0.15rem 0.4rem;border-radius:4px;border:1px solid var(--border-color);">?</kbd> Mostrar esta ayuda</div>
+      </div>
+      <button onclick="this.parentElement.remove()" class="btn btn-primary" style="margin-top:1.5rem;width:100%;">Cerrar</button>
+    </div>
+  `;
+  document.body.insertAdjacentHTML("beforeend", ayuda);
+  // Auto-cerrar tras 10s
+  setTimeout(() => {
+    const el = document.querySelector('[style*="position:fixed"]');
+    if (el) el.remove();
+  }, 10000);
+}
+
+/* -------------------------------------------------------------
    MODULO C: DETECTOR DE SECUENCIAS
 ------------------------------------------------------------- */
 function initModuloC() {
@@ -332,9 +423,15 @@ function initModuloD() {
   const btnRun = document.getElementById("btn-run-all-tests");
   const tableBody = document.getElementById("test-results-body");
   const summaryBadges = document.getElementById("test-summary-badges");
+  const exportButtons = document.getElementById("test-export-buttons");
+  const btnExportJson = document.getElementById("btn-export-json");
+  const btnExportCsv = document.getElementById("btn-export-csv");
+
+  let lastSuite = null;
 
   btnRun?.addEventListener("click", () => {
     const suite = ejecutarSuiteCompleta();
+    lastSuite = suite;
 
     tableBody.innerHTML = "";
     suite.resultados.forEach(r => {
@@ -362,6 +459,102 @@ function initModuloD() {
       summaryBadges.innerHTML = `<span class="badge-status pass">✔ 10/10 PRUEBAS SUPERADAS (${suite.pasados} PASS)</span>`;
     } else {
       summaryBadges.innerHTML = `<span class="badge-status fail">✖ ${suite.fallados} PRUEBA(S) FALLADA(S) • ${suite.pasados}/10 PASS</span>`;
+    }
+
+    // Mostrar botones de exportación
+    exportButtons?.style.setProperty("display", "flex", "important");
+  });
+
+  btnExportJson?.addEventListener("click", () => {
+    if (lastSuite) {
+      exportarResultadosJSON(lastSuite);
+    }
+  });
+
+  btnExportCsv?.addEventListener("click", () => {
+    if (lastSuite) {
+      exportarResultadosCSV(lastSuite);
+    }
+  });
+}
+
+/* -------------------------------------------------------------
+   TEMA CLARO/OSCURO (PERSISTENCIA EN LOCALSTORAGE)
+------------------------------------------------------------- */
+function initThemeToggle() {
+  const btnToggle = document.getElementById("btn-theme-toggle");
+  if (!btnToggle) return;
+
+  // Cargar tema guardado o usar preferencia del sistema
+  const savedTheme = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
+
+  document.documentElement.setAttribute("data-theme", initialTheme);
+
+  btnToggle.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+  });
+
+  // Atajo de teclado 'T' para cambiar tema
+  document.addEventListener("keydown", (e) => {
+    if (e.key.toLowerCase() === "t" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      e.preventDefault();
+      btnToggle.click();
+    }
+  });
+
+  // Escuchar cambios en preferencia del sistema
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    if (!localStorage.getItem("theme")) {
+      document.documentElement.setAttribute("data-theme", e.matches ? "dark" : "light");
+    }
+  });
+}
+
+/* -------------------------------------------------------------
+   MODAL DE AYUDA / ACERCA DE
+------------------------------------------------------------- */
+function initHelpModal() {
+  const btnHelp = document.getElementById("btn-help");
+  const modal = document.getElementById("help-modal");
+  const closeBtn = document.getElementById("help-modal-close");
+
+  if (!btnHelp || !modal || !closeBtn) return;
+
+  function openModal() {
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden";
+    closeBtn.focus();
+  }
+
+  function closeModal() {
+    modal.classList.remove("active");
+    document.body.style.overflow = "";
+  }
+
+  btnHelp.addEventListener("click", openModal);
+  closeBtn.addEventListener("click", closeModal);
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal.classList.contains("active")) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key.toLowerCase() === "h" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      e.preventDefault();
+      if (!modal.classList.contains("active")) {
+        openModal();
+      }
     }
   });
 }
