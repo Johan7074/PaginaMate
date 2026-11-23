@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initModuloC();
   initModuloD();
   initKeyboardShortcuts();
+  initThemeToggle();
 });
 
 /* -------------------------------------------------------------
@@ -472,6 +473,43 @@ function initModuloD() {
   btnExportCsv?.addEventListener("click", () => {
     if (lastSuite) {
       exportarResultadosCSV(lastSuite);
+    }
+  });
+}
+
+/* -------------------------------------------------------------
+   TEMA CLARO/OSCURO (PERSISTENCIA EN LOCALSTORAGE)
+------------------------------------------------------------- */
+function initThemeToggle() {
+  const btnToggle = document.getElementById("btn-theme-toggle");
+  if (!btnToggle) return;
+
+  // Cargar tema guardado o usar preferencia del sistema
+  const savedTheme = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
+
+  document.documentElement.setAttribute("data-theme", initialTheme);
+
+  btnToggle.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+  });
+
+  // Atajo de teclado 'T' para cambiar tema
+  document.addEventListener("keydown", (e) => {
+    if (e.key.toLowerCase() === "t" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      e.preventDefault();
+      btnToggle.click();
+    }
+  });
+
+  // Escuchar cambios en preferencia del sistema
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    if (!localStorage.getItem("theme")) {
+      document.documentElement.setAttribute("data-theme", e.matches ? "dark" : "light");
     }
   });
 }
