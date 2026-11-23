@@ -98,8 +98,15 @@ export function resolverCuadratica(a, b, c) {
   const sqrtDelta = Math.sqrt(delta);
   const q = -0.5 * (b + sgn * sqrtDelta);
 
-  const x1 = q / a;
-  const x2 = c / q;
+  // Si q está muy cerca de 0, usar fórmula estándar para evitar división por ~0
+  let x1, x2;
+  if (Math.abs(q) < 1e-15) {
+    x1 = (-b + sqrtDelta) / (2 * a);
+    x2 = (-b - sqrtDelta) / (2 * a);
+  } else {
+    x1 = q / a;
+    x2 = c / q;
+  }
 
   return {
     tipo: "REALES_DISTINTAS",
